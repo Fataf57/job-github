@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(adb reverse:*)",
+      "Bash(du -sh /tmp/flutter_tools.*)",
+      "Bash(du -sh ~/.cache/*/)",
+      "Bash(find /home/ouedraogo/Documents/Rep_coffre/Rep_emploie/client_publication/lib -type f -name \"*.dart\" -exec wc -l {})",
+      "Read(//home/ouedraogo/Documents/Rep_coffre/Rep_emploie/django-backend/**)",
+      "Bash(grep -r \"class.*extends.*StatefulWidget\\\\|class.*extends.*StatelessWidget\\\\|class.*Bloc\\\\|class.*Provider\\\\|class.*Notifier\\\\|class.*ChangeNotifier\" /home/ouedraogo/Documents/Rep_coffre/Rep_emploie/client_publication/lib --include=*.dart)",
+      "Bash(python manage.py makemigrations utilisateurs)",
+      "Bash(python3 -c \"import docx; print\\('ok'\\)\")",
+      "Bash(pip3 install:*)",
+      "Bash(python3 /home/ouedraogo/Documents/Rep_coffre/Rep_emploie/generate_doc.py)",
+      "Bash(python3 -c ':*)",
+      "Bash(timeout 30 python3 -c \"print\\('hello'\\)\")",
+      "Read(//tmp/**)",
+      "Bash(python3 -m py_compile publications/views.py)",
+      "Bash(flutter analyze:*)",
+      "Bash(dart analyze:*)"
+    ],
+    "additionalDirectories": [
+      "/home/ouedraogo/Documents/Rep_coffre/Rep_emploie"
+    ]
+  }
+}

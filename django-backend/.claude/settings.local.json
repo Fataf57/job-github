@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source venv/bin/activate)",
+      "Bash(python manage.py makemigrations publications --name=\"domaine_max_length_1000\")",
+      "Bash(python manage.py migrate)",
+      "Bash(curl -s http://10.53.20.188:8000/api/publications/references)",
+      "Bash(ip addr:*)",
+      "Bash(curl -s --connect-timeout 5 http://10.53.20.188:8000/api/publications/references)",
+      "Bash(python manage.py runserver 0.0.0.0:8000)",
+      "Bash(chmod +x /home/ouedraogo/Documents/Rep_coffre/Rep_emploie/django-backend/run_server.sh)",
+      "Bash(sudo ufw:*)",
+      "Bash(adb devices:*)"
+    ]
+  }
+}
