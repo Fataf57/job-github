@@ -105,6 +105,7 @@ class PublicationSerializer(serializers.ModelSerializer):
             images_urls = [instance.image]
         elif instance.image and instance.image not in images_urls:
             images_urls = [instance.image] + images_urls
-        data['images'] = images_urls
+        # Supprimer les doublons éventuels tout en conservant l'ordre
+        data['images'] = list(dict.fromkeys(images_urls))
         return data
 

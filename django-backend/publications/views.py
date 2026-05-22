@@ -207,11 +207,14 @@ def create_publication(request):
                 print(f"Erreur lors du parsing de la date limite: {e}")
         
         # Sauvegarder les fichiers
+        images_supp_a_enregistrer = images_multiples
         if image:
             publication.image = save_file(image, IMAGES_ROOT, 'image')
         elif images_multiples:
             # Première image comme image principale pour la rétrocompatibilité
             publication.image = save_file(images_multiples[0], IMAGES_ROOT, 'image')
+            # Éviter le doublon : la première image est déjà utilisée en image principale
+            images_supp_a_enregistrer = images_multiples[1:]
 
         if pdf:
             publication.pdf = save_file(pdf, DOCS_ROOT, 'pdf')
@@ -219,8 +222,8 @@ def create_publication(request):
         publication.save()
 
         # Sauvegarder les images supplémentaires
-        if images_multiples:
-            for i, img_file in enumerate(images_multiples):
+        if images_supp_a_enregistrer:
+            for i, img_file in enumerate(images_supp_a_enregistrer):
                 img_url = save_file(img_file, IMAGES_ROOT, 'image')
                 if img_url:
                     PublicationImage.objects.create(
