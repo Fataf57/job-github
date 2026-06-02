@@ -67,9 +67,9 @@ class Publication(models.Model):
     )
     section = models.CharField(max_length=100)
     
-    # Champs pour filtrage
-    niveau = models.CharField(max_length=100, blank=True, null=True)  # BAC, BEPC, LICENCE
-    domaine = models.CharField(max_length=1000, blank=True, null=True)  # Informatique, Comptabilité
+    # Métadonnées publication (MVP : seuls domaine, localite, sexe servent au filtrage d'affichage)
+    niveau = models.CharField(max_length=100, blank=True, null=True)  # Info affichée — pas de filtre MVP
+    domaine = models.CharField(max_length=1000, blank=True, null=True)  # Filtre MVP (section Pro)
     localite = models.CharField(max_length=100, blank=True, null=True)  # Ouagadougou, Bobo
     sexe = models.CharField(max_length=10, blank=True, null=True)  # M, F ou Tout
     

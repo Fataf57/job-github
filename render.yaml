@@ -1,0 +1,25 @@
+# Déploiement Render — connecter le dépôt GitHub puis « New Blueprint »
+services:
+  - type: web
+    name: fasojob-api
+    runtime: python
+    plan: free
+    rootDir: django-backend
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn job_api.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fasojob-db
+          property: connectionString
+
+databases:
+  - name: fasojob-db
+    plan: free

@@ -10,6 +10,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Publication, Domaine, Section, Favori, PublicationImage
 from .serializers import PublicationSerializer
+from .filters import (
+    queryset_non_expirees,
+    parse_filter_params,
+    filtrer_publications,
+)
 from utilisateurs.models import Utilisateur
 from datetime import datetime
 
@@ -74,13 +79,14 @@ def paginate_list(request, items):
 
 
 def generate_file_name(original_filename):
-    """Génère un nom de fichier unique"""
+    """Génère un nom de fichier unique en conservant l'extension."""
     timestamp = str(int(timezone.now().timestamp() * 1000))
     if original_filename:
-        # Nettoyer le nom du fichier
-        clean_name = slugify(original_filename.replace(' ', '_'))
-        return f"{timestamp}_{clean_name}"
-    return f"{timestamp}_file"
+        base, ext = os.path.splitext(original_filename)
+        clean_base = slugify(base.replace(' ', '_')) or 'file'
+        ext = ext.lower() if ext else ''
+        return f"{timestamp}_{clean_base}{ext}"
+    return f"{timestamp}_file.pdf"
 
 
 def save_file(uploaded_file, root_path, file_type):
@@ -101,33 +107,6 @@ def save_file(uploaded_file, root_path, file_type):
     elif file_type == 'pdf':
         return f"/api/publications/docs/{filename}"
     return None
-
-
-def domaines_se_chevauchent(domaines_utilisateur, domaines_publication):
-    """
-    Vérifie si au moins un domaine de l'utilisateur correspond à au moins un domaine de la publication.
-    
-    Args:
-        domaines_utilisateur: Chaîne de domaines séparés par des virgules (peut être None ou vide)
-        domaines_publication: Chaîne de domaines séparés par des virgules (peut être None ou vide)
-    
-    Returns:
-        True si au moins un domaine correspond, False sinon
-    """
-    # Si aucun domaine n'est spécifié pour l'utilisateur, il reçoit toutes les publications
-    if not domaines_utilisateur or not domaines_utilisateur.strip():
-        return True
-    
-    # Si aucun domaine n'est spécifié pour la publication, elle est visible par tous
-    if not domaines_publication or not domaines_publication.strip():
-        return True
-    
-    # Normaliser et diviser les domaines
-    domaines_user = [d.strip().lower() for d in domaines_utilisateur.split(',') if d.strip()]
-    domaines_pub = [d.strip().lower() for d in domaines_publication.split(',') if d.strip()]
-    
-    # Vérifier s'il y a au moins un domaine en commun
-    return bool(set(domaines_user) & set(domaines_pub))
 
 
 @api_view(['POST'])
@@ -246,30 +225,12 @@ def create_publication(request):
 @api_view(['GET'])
 def get_all_publications(request):
     """
-    Récupérer toutes les publications non expirées.
-    Si un utilisateur_id est fourni, filtre les publications selon les domaines de l'utilisateur
-    UNIQUEMENT pour les publications de la section "Professionnelle".
+    Publications non expirées, filtrage métier complet (domaines Pro, sexe, localité).
+    Paramètres GET : utilisateur_id, localite (ou ville), page, pageSize.
     """
-    now = timezone.now()
-    publications = Publication.objects.filter(
-        models.Q(date_limite__isnull=True) | models.Q(date_limite__gt=now)
-    ).select_related('auteur').order_by('-created_at')
-
-    utilisateur_id = request.GET.get('utilisateur_id')
-    if utilisateur_id:
-        try:
-            utilisateur = Utilisateur.objects.get(id=utilisateur_id)
-            publications_filtrees = []
-            for publication in publications:
-                if publication.section == "Professionnelle":
-                    if domaines_se_chevauchent(utilisateur.domaine, publication.domaine):
-                        publications_filtrees.append(publication)
-                else:
-                    publications_filtrees.append(publication)
-            publications = publications_filtrees
-        except Utilisateur.DoesNotExist:
-            pass
-
+    utilisateur, localite = parse_filter_params(request)
+    publications = queryset_non_expirees()
+    publications = filtrer_publications(publications, utilisateur=utilisateur, localite=localite)
     return paginate_list(request, publications)
 
 
@@ -423,41 +384,21 @@ def delete_publication(request, id):
 @api_view(['GET'])
 def get_publications_by_section(request, section):
     """
-    Récupérer les publications par section (non expirées).
-    Si un utilisateur_id est fourni, filtre les publications selon les domaines de l'utilisateur
-    UNIQUEMENT pour les publications de la section "Professionnelle".
+    Publications d'une section, filtrage métier complet côté serveur.
+    Paramètres GET : utilisateur_id, localite (ou ville), page, pageSize.
     """
-    now = timezone.now()
-    publications = Publication.objects.filter(
-        section=section
-    ).filter(
-        models.Q(date_limite__isnull=True) | models.Q(date_limite__gt=now)
-    ).select_related('auteur').order_by('-created_at')
-
-    utilisateur_id = request.GET.get('utilisateur_id')
-    if utilisateur_id and section == "Professionnelle":
-        try:
-            utilisateur = Utilisateur.objects.get(id=utilisateur_id)
-            publications_filtrees = []
-            for publication in publications:
-                if domaines_se_chevauchent(utilisateur.domaine, publication.domaine):
-                    publications_filtrees.append(publication)
-            publications = publications_filtrees
-        except Utilisateur.DoesNotExist:
-            pass
-
+    utilisateur, localite = parse_filter_params(request)
+    publications = queryset_non_expirees().filter(section=section)
+    publications = filtrer_publications(publications, utilisateur=utilisateur, localite=localite)
     return paginate_list(request, publications)
 
 
 @api_view(['GET'])
 def get_publications_by_utilisateur(request, utilisateur_id):
-    """Récupérer les publications d'un utilisateur (non expirées)"""
-    now = timezone.now()
-    publications = Publication.objects.filter(
-        auteur_id=utilisateur_id
-    ).filter(
-        models.Q(date_limite__isnull=True) | models.Q(date_limite__gt=now)
-    ).select_related('auteur').order_by('-created_at')
+    """Publications d'un auteur (non expirées), filtrage visibilité optionnel."""
+    utilisateur, localite = parse_filter_params(request, utilisateur_id_fallback=utilisateur_id)
+    publications = queryset_non_expirees().filter(auteur_id=utilisateur_id)
+    publications = filtrer_publications(publications, utilisateur=utilisateur, localite=localite)
     return paginate_list(request, publications)
 
 
@@ -648,15 +589,14 @@ def check_favori(request, publication_id):
 
 @api_view(['GET'])
 def get_favoris(request, utilisateur_id):
-    """Récupérer toutes les publications favorites d'un utilisateur (non expirées)"""
+    """Favoris non expirés, filtrage métier complet (sexe, localité, domaines Pro)."""
     try:
         utilisateur = Utilisateur.objects.get(id=utilisateur_id)
-        now = timezone.now()
-        
-        # Récupérer les favoris avec les publications non expirées
-        # Utiliser Q objects pour combiner les conditions
+        _, localite = parse_filter_params(request, utilisateur_id_fallback=utilisateur_id)
+
         from django.db.models import Q
-        
+
+        now = timezone.now()
         favoris = Favori.objects.filter(
             utilisateur=utilisateur
         ).filter(
@@ -664,6 +604,9 @@ def get_favoris(request, utilisateur_id):
         ).select_related('publication', 'publication__auteur').order_by('-created_at')
 
         publications = [favori.publication for favori in favoris]
+        publications = filtrer_publications(
+            publications, utilisateur=utilisateur, localite=localite
+        )
         return paginate_list(request, publications)
     except Utilisateur.DoesNotExist:
         return Response(

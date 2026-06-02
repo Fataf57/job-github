@@ -1,6 +1,13 @@
 import json
 from rest_framework import serializers
 from .models import Utilisateur, Role
+from .phone_utils import normalize_telephone
+
+MSG_TELEPHONE_DEJA_UTILISE = (
+    "Ce numéro de téléphone est déjà associé à un compte. "
+    "Vous ne pouvez pas en créer un second avec le même numéro. "
+    "Connectez-vous avec ce numéro."
+)
 
 
 class DomaineNiveauSerializer(serializers.Serializer):
@@ -42,6 +49,17 @@ class UtilisateurSerializer(serializers.ModelSerializer):
             'rccm': {'required': False, 'allow_blank': True, 'allow_null': True},
             'nif': {'required': False, 'allow_blank': True, 'allow_null': True},
         }
+
+    def validate_telephone(self, value):
+        normalized = normalize_telephone(value)
+        if not normalized:
+            raise serializers.ValidationError("Le téléphone est requis.")
+        qs = Utilisateur.objects.filter(telephone=normalized)
+        if self.instance is not None:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError(MSG_TELEPHONE_DEJA_UTILISE)
+        return normalized
 
     def to_internal_value(self, data):
         if 'domaines' in data and isinstance(data['domaines'], list):
