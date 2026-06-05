@@ -15,6 +15,7 @@ from .filters import (
     parse_filter_params,
     filtrer_publications,
 )
+from .reference_data import DEFAULT_DOMAINE_NAMES
 from utilisateurs.models import Utilisateur
 from datetime import datetime
 
@@ -457,8 +458,8 @@ def serve_pdf(request, filename):
 def get_reference_lists(request):
     """Récupérer les listes de référence pour les publications (domaines, localités, sections, etc.)"""
     # Récupérer les domaines actifs depuis la base de données
-    domaines_actifs = Domaine.objects.filter(actif=True).values_list('nom', flat=True)
-    domaines_list = list(domaines_actifs) if domaines_actifs.exists() else []
+    domaines_actifs = Domaine.objects.filter(actif=True).order_by('nom').values_list('nom', flat=True)
+    domaines_list = list(domaines_actifs) if domaines_actifs.exists() else DEFAULT_DOMAINE_NAMES
     # Récupérer les sections actives depuis la base de données (exclure "Favoris" qui n'est pas une section normale)
     sections_actives = Section.objects.filter(actif=True).exclude(nom='Favoris').values_list('nom', flat=True)
     sections_list = list(sections_actives) if sections_actives.exists() else []
