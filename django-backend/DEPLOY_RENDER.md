@@ -71,6 +71,31 @@ Uploader sur **Firebase App Distribution** :
    - `SECRET_KEY` = (générer une clé longue aléatoire)
    - `PYTHON_VERSION` = `3.12.0`
 
+## 7. Codes de vérification (inscription)
+
+Sans configuration email, les codes s’affichent **dans l’app** (bandeau orange) et dans les **logs Render**.
+
+### Activer les vrais emails (Gmail)
+
+Dans Render → **fasojob-api** → **Environment** → ajouter :
+
+| Variable | Valeur |
+|----------|--------|
+| `EMAIL_HOST` | `smtp.gmail.com` |
+| `EMAIL_PORT` | `587` |
+| `EMAIL_HOST_USER` | votre@gmail.com |
+| `EMAIL_HOST_PASSWORD` | mot de passe d’application Gmail |
+| `EMAIL_USE_TLS` | `true` |
+| `DEFAULT_FROM_EMAIL` | votre@gmail.com |
+
+> Créer un mot de passe d’application : compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications.
+
+Une fois SMTP configuré, les codes partent par **vrai email** et ne s’affichent plus dans l’app.
+
+### Compte bloqué maintenant
+
+Sur l’écran de code, appuyez sur **« Renvoyer le code »** — le nouveau code apparaîtra dans l’app (après redéploiement du backend).
+
 ## Limitations (offre gratuite)
 
 | Élément | Comportement |

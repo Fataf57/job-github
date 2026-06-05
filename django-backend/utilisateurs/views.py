@@ -1,4 +1,5 @@
 import random
+from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
@@ -9,27 +10,52 @@ from .models import Utilisateur
 from .serializers import UtilisateurSerializer
 from .phone_utils import normalize_telephone
 
+# Code temporaire pour les tests (à retirer en production)
+TEST_VERIFICATION_CODE = '123456'
+
 
 def _generer_code():
     """Génère un code de vérification à 6 chiffres."""
     return str(random.randint(100000, 999999))
 
 
+def _uses_console_email():
+    return 'console' in settings.EMAIL_BACKEND.lower()
+
+
+def _log_verification_code(canal, identifiant, code):
+    print(f"[VERIFICATION {canal}] {identifiant} → code: {code}")
+
+
+def _verification_payload(message, code=None):
+    """Inclut le code dans la réponse API si l'email n'est pas vraiment envoyé."""
+    payload = {'message': message}
+    if code and _uses_console_email():
+        payload['verification_code'] = code
+    return payload
+
+
 def _envoyer_code_email(email, code, prenom=''):
     """Envoie le code de vérification par email."""
-    sujet = "Votre code de vérification"
+    sujet = "Votre code de vérification FASO JOB"
     message = (
         f"Bonjour{' ' + prenom if prenom else ''},\n\n"
         f"Votre code de vérification est : {code}\n\n"
         f"Ce code est valable 15 minutes.\n\n"
         f"Si vous n'avez pas créé de compte, ignorez ce message."
     )
-    send_mail(sujet, message, None, [email], fail_silently=False)
+    send_mail(
+        sujet,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [email],
+        fail_silently=False,
+    )
 
 
 def _notifier_code_telephone(telephone, code):
     """Notification du code par SMS (en dev : affichage console)."""
-    print(f"[VERIFICATION SMS] {telephone} → code: {code}")
+    _log_verification_code('SMS', telephone, code)
 
 
 def _trouver_utilisateur_pour_verification(email='', telephone=''):
@@ -60,13 +86,17 @@ def create_utilisateur(request):
         if email:
             try:
                 _envoyer_code_email(email, code, utilisateur.prenom or '')
+                _log_verification_code('EMAIL', email, code)
             except Exception:
-                print(f"[VERIFICATION EMAIL] {email} → code: {code}")
+                _log_verification_code('EMAIL', email, code)
         elif telephone:
             _notifier_code_telephone(telephone, code)
 
         return Response(
-            {'message': 'Compte créé. Vérifiez le code reçu pour activer votre compte.'},
+            _verification_payload(
+                'Compte créé. Vérifiez le code reçu pour activer votre compte.',
+                code,
+            ),
             status=status.HTTP_201_CREATED,
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -127,10 +157,18 @@ def verify_email(request):
     if utilisateur.email_verifie:
         return Response({'message': 'Email déjà vérifié.'}, status=status.HTTP_200_OK)
 
-    if not utilisateur.code_verification or utilisateur.code_verification != code:
+    code_valide = (
+        code == TEST_VERIFICATION_CODE
+        or utilisateur.code_verification == code
+    )
+    if not code_valide:
         return Response({'message': 'Code incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if utilisateur.code_expiration and timezone.now() > utilisateur.code_expiration:
+    if (
+        code != TEST_VERIFICATION_CODE
+        and utilisateur.code_expiration
+        and timezone.now() > utilisateur.code_expiration
+    ):
         return Response({'message': 'Code expiré. Demandez un nouveau code.'}, status=status.HTTP_400_BAD_REQUEST)
 
     utilisateur.email_verifie = True
@@ -172,12 +210,16 @@ def resend_verification(request):
     if utilisateur.email:
         try:
             _envoyer_code_email(utilisateur.email, code, utilisateur.prenom or '')
+            _log_verification_code('EMAIL', utilisateur.email, code)
         except Exception:
-            print(f"[VERIFICATION EMAIL] {utilisateur.email} → code: {code}")
+            _log_verification_code('EMAIL', utilisateur.email, code)
     elif utilisateur.telephone:
         _notifier_code_telephone(utilisateur.telephone, code)
 
-    return Response({'message': 'Nouveau code envoyé.'}, status=status.HTTP_200_OK)
+    return Response(
+        _verification_payload('Nouveau code envoyé.', code),
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(['GET'])
@@ -216,5 +258,3 @@ def get_utilisateur_by_id(request, id):
             'Utilisateur non trouvé', 
             status=status.HTTP_404_NOT_FOUND
         )
-
-
