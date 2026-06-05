@@ -13,7 +13,22 @@ def health(_request):
     return JsonResponse({'status': 'ok', 'service': 'fasojob-api'})
 
 
+def home(_request):
+    return JsonResponse({
+        'service': 'fasojob-api',
+        'status': 'ok',
+        'message': 'API FASO JOB — le serveur fonctionne.',
+        'endpoints': {
+            'health': '/health/',
+            'utilisateurs': '/api/utilisateurs/',
+            'publications': '/api/publications/',
+            'admin': '/admin/',
+        },
+    })
+
+
 urlpatterns = [
+    path('', home),
     path('health/', health),
     path('admin/', admin.site.urls),
     path('api/utilisateurs/', include('utilisateurs.urls')),
