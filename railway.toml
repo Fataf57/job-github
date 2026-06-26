@@ -1,6 +1,6 @@
 # Config Railway à la racine du monorepo (sans Root Directory dans le dashboard).
 [build]
-builder = "NIXPACKS"
+builder = "RAILPACK"
 buildCommand = "bash django-backend/build.sh"
 
 [deploy]

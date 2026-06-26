@@ -44,3 +44,7 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/build/
+
+# APK / AAB (build local, ne pas versionner)
+*.apk
+*.aab

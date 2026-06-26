@@ -12,3 +12,7 @@ django-backend/.env
 .vscode/
 .DS_Store
 *.log
+
+# Binaires mobiles (build local Flutter)
+*.apk
+*.aab

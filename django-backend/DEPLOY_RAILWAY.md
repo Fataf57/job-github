@@ -21,7 +21,12 @@ Dans **Settings** du service :
 
 **Alternative** : Root Directory = `django-backend`, champs build/start vides, alors `django-backend/railway.toml` s’applique.
 
-### Erreur « Healthcheck failure »
+### Erreur « Healthcheck failure » (builder NIXPACKS)
+
+- Cause : `builder = "NIXPACKS"` est obsolète — le proxy Railway ne joint plus le conteneur.
+- Fix : utiliser `builder = "RAILPACK"` dans `railway.toml` (déjà configuré dans ce dépôt).
+
+### Erreur « Healthcheck failure » (base de données)
 
 - Cause fréquente : `DATABASE_URL` absent au **build** → migrations sur SQLite, puis PostgreSQL vide au démarrage → Django plante sur `/health/`.
 - Fix : le script `start.sh` lance `migrate` **au démarrage** (avec la vraie `DATABASE_URL`).
