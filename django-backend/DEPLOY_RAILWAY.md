@@ -21,10 +21,11 @@ Dans **Settings** du service :
 
 **Alternative** : Root Directory = `django-backend`, champs build/start vides, alors `django-backend/railway.toml` s’applique.
 
-### Erreur « build.sh: No such file or directory »
+### Erreur « Healthcheck failure »
 
-- Cause : Root Directory mal configuré ou commande dupliquée dans l’UI Railway.
-- Fix : vider **Custom Build Command** dans Settings → Redeploy.
+- Cause fréquente : `DATABASE_URL` absent au **build** → migrations sur SQLite, puis PostgreSQL vide au démarrage → Django plante sur `/health/`.
+- Fix : le script `start.sh` lance `migrate` **au démarrage** (avec la vraie `DATABASE_URL`).
+- Vérifier : service web → **Variables** → `DATABASE_URL` = **Reference** vers **fasojob-db**.
 
 ## 3. Ajouter PostgreSQL
 

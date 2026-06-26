@@ -33,6 +33,11 @@ if _render_host:
     ALLOWED_HOSTS.append(_render_host)
     _public_hosts.append(_render_host)
 
+if os.environ.get('RAILWAY_ENVIRONMENT') or _railway_host:
+    for _host in ('.up.railway.app', '.railway.internal', 'healthcheck.railway.app'):
+        if _host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_host)
+
 if DEBUG and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('*')
 
