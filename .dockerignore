@@ -1,0 +1,12 @@
+**/.git
+**/__pycache__
+**/*.pyc
+**/venv
+**/.venv
+**/db.sqlite3
+**/media
+**/staticfiles
+client_publication
+.github
+*.md
+render.yaml

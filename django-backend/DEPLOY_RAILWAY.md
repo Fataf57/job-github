@@ -13,30 +13,22 @@ Dans **Settings** du service :
 
 | Paramètre | Valeur |
 |-----------|--------|
-| **Root Directory** | *(laisser vide)* |
-| **Custom Build Command** | *(laisser vide — utilise `railway.toml` à la racine)* |
-| **Custom Start Command** | *(laisser vide — utilise `railway.toml`)* |
+| **Root Directory** | *(vide)* ou `django-backend` (les deux fonctionnent avec le Dockerfile) |
+| **Custom Build Command** | *(vide)* |
+| **Custom Start Command** | *(vide)* |
 
-> **Important** : ne remplissez pas la commande de build dans l’interface **et** dans `railway.toml` en même temps — cela provoque l’erreur `chmod +x chmod +x build.sh`.
+Le déploiement utilise le **Dockerfile** (Gunicorn + migrations au démarrage).
 
-**Alternative** : Root Directory = `django-backend`, champs build/start vides, alors `django-backend/railway.toml` s’applique.
+## 3. Lier PostgreSQL (obligatoire)
 
-### Erreur « Healthcheck failure » (builder NIXPACKS)
+Sans cela, la base Railway reste vide et le démarrage peut échouer.
 
-- Cause : `builder = "NIXPACKS"` est obsolète — le proxy Railway ne joint plus le conteneur.
-- Fix : utiliser `builder = "RAILPACK"` dans `railway.toml` (déjà configuré dans ce dépôt).
+1. Service **fasojob-api** → **Variables**
+2. **+ New Variable** → **Add Reference**
+3. Choisir **fasojob-db** → variable **`DATABASE_URL`**
+4. Sauvegarder → **Redeploy**
 
-### Erreur « Healthcheck failure » (base de données)
-
-- Cause fréquente : `DATABASE_URL` absent au **build** → migrations sur SQLite, puis PostgreSQL vide au démarrage → Django plante sur `/health/`.
-- Fix : le script `start.sh` lance `migrate` **au démarrage** (avec la vraie `DATABASE_URL`).
-- Vérifier : service web → **Variables** → `DATABASE_URL` = **Reference** vers **fasojob-db**.
-
-## 3. Ajouter PostgreSQL
-
-1. Dans le projet Railway : **+ New** → **Database** → **PostgreSQL**
-2. Ouvrir le service web → **Variables** → **New Variable** → **Add Reference**
-3. Choisir la base PostgreSQL → variable **`DATABASE_URL`**
+Vérification : **fasojob-db** → **Database** → **Data** → les tables Django (`auth_user`, `publications_*`, etc.) apparaissent après un déploiement réussi.
 
 ## 4. Variables d'environnement
 

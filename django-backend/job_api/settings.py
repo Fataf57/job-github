@@ -38,6 +38,9 @@ if os.environ.get('RAILWAY_ENVIRONMENT') or _railway_host:
         if _host not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(_host)
 
+if (os.environ.get('RAILWAY_ENVIRONMENT') or _railway_host) and not DEBUG:
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
 if DEBUG and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('*')
 
@@ -92,13 +95,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'job_api.wsgi.application'
 
 # Database — PostgreSQL en prod (Railway/Render), SQLite en local
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+_db_default = dj_database_url.config(
+    default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+    conn_max_age=600,
+    conn_health_checks=True,
+)
+if (
+    _db_default.get('ENGINE') == 'django.db.backends.postgresql'
+    and os.environ.get('RAILWAY_ENVIRONMENT')
+):
+    _db_default.setdefault('OPTIONS', {})
+    _db_default['OPTIONS'].setdefault('sslmode', 'require')
+
+DATABASES = {'default': _db_default}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

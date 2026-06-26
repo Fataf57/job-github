@@ -1,10 +1,9 @@
-# Config Railway à la racine du monorepo (sans Root Directory dans le dashboard).
+# Config Railway — Dockerfile (monorepo Django)
 [build]
-builder = "RAILPACK"
-buildCommand = "bash django-backend/build.sh"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "bash django-backend/start.sh"
 healthcheckPath = "/health/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
