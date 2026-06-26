@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "463822662653",
+    "project_id": "fasojob-f7815",
+    "storage_bucket": "fasojob-f7815.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:463822662653:android:66071ba08d8bcd9f5a0794",
+        "android_client_info": {
+          "package_name": "com.fasojob.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm0yoK2CMhKZGnQkXU2h_7gpPv4Skaz6k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

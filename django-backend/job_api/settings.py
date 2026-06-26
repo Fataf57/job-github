@@ -23,9 +23,15 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+_public_hosts = []
+_railway_host = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
 _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if _railway_host:
+    ALLOWED_HOSTS.append(_railway_host)
+    _public_hosts.append(_railway_host)
 if _render_host:
     ALLOWED_HOSTS.append(_render_host)
+    _public_hosts.append(_render_host)
 
 if DEBUG and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('*')
@@ -80,7 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'job_api.wsgi.application'
 
-# Database — PostgreSQL sur Render, SQLite en local
+# Database — PostgreSQL en prod (Railway/Render), SQLite en local
 DATABASES = {
     'default': dj_database_url.config(
         default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
@@ -129,14 +135,12 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 20971520  # 20MB
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Production (Render HTTPS)
+# Production (HTTPS derrière proxy Railway / Render)
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    CSRF_TRUSTED_ORIGINS = [
-        f'https://{_render_host}',
-    ] if _render_host else []
+    CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in _public_hosts]
 
-# Email — console en local, SMTP sur Render (Gmail, etc.)
+# Email — console en local, SMTP en prod (Gmail, etc.)
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend',

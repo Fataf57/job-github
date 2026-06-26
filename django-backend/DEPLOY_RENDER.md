@@ -2,7 +2,9 @@
 
 ## 1. Pousser le code sur GitHub
 
-Assurez-vous que le dépôt contient `django-backend/`, `render.yaml` à la racine, et que `venv/` n’est **pas** versionné.
+Assurez-vous que le dépôt contient `django-backend/`, `client_publication/` (app Flutter, versionnée mais **non déployée** sur Render), `render.yaml` à la racine, et que `venv/` / `build/` ne sont **pas** versionnés.
+
+Render ne déploie que le dossier `django-backend/` (voir `rootDir` dans `render.yaml`). Un `git push` envoie tout le monorepo sur GitHub ; seul le backend est reconstruit sur Render.
 
 ## 2. Créer le compte Render
 
