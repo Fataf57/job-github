@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 class Constants {
-  /// URL complète du backend en production (Railway ou Render).
-  /// Après déploiement Railway, remplacez par votre URL, ex. :
-  /// https://fasojob-api-production.up.railway.app
+  /// URL complète du backend en production (Render).
+  /// Après déploiement, remplacez par votre URL Render, ex. :
+  /// https://fasojob-api.onrender.com
   ///
-  /// Ou au build : `flutter build apk --release --dart-define=API_BASE_URL=https://votre-app.up.railway.app`
+  /// Ou au build : `flutter build apk --release --dart-define=API_BASE_URL=https://votre-app.onrender.com`
   static const String _prodBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'https://fasojob-api.onrender.com',

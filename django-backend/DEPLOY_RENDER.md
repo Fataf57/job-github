@@ -17,20 +17,20 @@ Cela crée :
 - **fasojob-api** (Web Service Python)
 - **fasojob-db** (PostgreSQL gratuit)
 
-Attendre le premier déploiement (5–10 min). L’URL sera du type :
+Attendre le premier déploiement (5–10 min). L'URL sera du type :
 
 `https://fasojob-api.onrender.com`
 
-## 3. Vérifier que l’API répond
+## 3. Vérifier que l'API répond
 
 Dans un navigateur :
 
 - `https://fasojob-api.onrender.com/health/` → `{"status":"ok",...}`
 - `https://fasojob-api.onrender.com/api/publications/references` → JSON (ou liste vide)
 
-> **Offre gratuite** : le service « s’endort » après ~15 min d’inactivité. La **première** requête peut prendre 30–60 s.
+> **Offre gratuite** : le service « s'endort » après ~15 min d'inactivité. La **première** requête peut prendre 30–60 s.
 
-## 4. Mettre à jour l’URL dans l’app Flutter
+## 4. Mettre à jour l'URL dans l'app Flutter
 
 Si votre URL Render est différente de `https://fasojob-api.onrender.com`, modifiez :
 
@@ -43,7 +43,7 @@ cd client_publication
 flutter build apk --release --dart-define=API_BASE_URL=https://VOTRE-URL.onrender.com
 ```
 
-## 5. Reconstruire et redistribuer l’APK
+## 5. Reconstruire et redistribuer l'APK
 
 ```bash
 cd client_publication
@@ -56,7 +56,7 @@ Uploader sur **Firebase App Distribution** :
 
 ## 6. Côté testeurs
 
-1. Installer l’APK depuis l’email Firebase
+1. Installer l'APK depuis l'email Firebase
 2. **Pas besoin** du même Wi‑Fi que votre PC
 3. Désactiver le VPN si des erreurs réseau persistent
 4. La première ouverture peut être lente (réveil du serveur Render)
@@ -65,38 +65,36 @@ Uploader sur **Firebase App Distribution** :
 
 1. **New** → **Web Service** → repo GitHub
 2. **Root Directory** : `django-backend`
-3. **Build Command** : `chmod +x build.sh && ./build.sh`
-4. **Start Command** : `gunicorn job_api.wsgi:application --bind 0.0.0.0:$PORT`
+3. **Build Command** : `chmod +x build.sh start.sh && ./build.sh`
+4. **Start Command** : `./start.sh`
 5. **New** → **PostgreSQL** → lier `DATABASE_URL` au Web Service
-6. Variables d’environnement :
+6. Variables d'environnement :
    - `DEBUG` = `false`
    - `SECRET_KEY` = (générer une clé longue aléatoire)
    - `PYTHON_VERSION` = `3.12.0`
 
-## 7. Codes de vérification (inscription)
+## 7. Codes de vérification (inscription) — SendGrid
 
-Sans configuration email, les codes s’affichent **dans l’app** (bandeau orange) et dans les **logs Render**.
+Sans SendGrid, les codes s'affichent **dans l'app** (bandeau orange, mode dev) et dans les **logs Render**.
 
-### Activer les vrais emails (Gmail)
+### Activer les vrais emails (SendGrid)
+
+1. Compte sur [sendgrid.com](https://sendgrid.com)
+2. **Settings → API Keys** → créer une clé avec permission **Mail Send**
+3. **Settings → Sender Authentication** → vérifier un **Single Sender** (ex. `noreply@votredomaine.com`)
 
 Dans Render → **fasojob-api** → **Environment** → ajouter :
 
 | Variable | Valeur |
 |----------|--------|
-| `EMAIL_HOST` | `smtp.gmail.com` |
-| `EMAIL_PORT` | `587` |
-| `EMAIL_HOST_USER` | votre@gmail.com |
-| `EMAIL_HOST_PASSWORD` | mot de passe d’application Gmail |
-| `EMAIL_USE_TLS` | `true` |
-| `DEFAULT_FROM_EMAIL` | votre@gmail.com |
+| `SENDGRID_API_KEY` | `SG.xxxxxxxxx...` |
+| `DEFAULT_FROM_EMAIL` | email **exact** vérifié dans SendGrid |
 
-> Créer un mot de passe d’application : compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications.
+Une fois SendGrid configuré, les codes partent par **vrai email** et ne s'affichent plus dans l'app.
 
-Une fois SMTP configuré, les codes partent par **vrai email** et ne s’affichent plus dans l’app.
+### Compte bloqué
 
-### Compte bloqué maintenant
-
-Sur l’écran de code, appuyez sur **« Renvoyer le code »** — le nouveau code apparaîtra dans l’app (après redéploiement du backend).
+Sur l'écran de code, appuyez sur **« Renvoyer le code »** — un nouvel email sera envoyé.
 
 ## Limitations (offre gratuite)
 

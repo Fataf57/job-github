@@ -39,19 +39,24 @@ Dans le service web → **Variables** :
 | `DEBUG` | `false` |
 | `SECRET_KEY` | clé longue aléatoire (50+ caractères) |
 | `DATABASE_URL` | référence PostgreSQL (étape 3) |
+| `SENDGRID_API_KEY` | clé API SendGrid (voir section ci-dessous) |
+| `DEFAULT_FROM_EMAIL` | expéditeur vérifié dans SendGrid |
 
-Optionnel — emails (Gmail) :
+### Emails de verification (SendGrid)
+
+1. Creer un compte sur [sendgrid.com](https://sendgrid.com)
+2. **Settings** → **API Keys** → creer une cle avec permission **Mail Send**
+3. **Settings** → **Sender Authentication** → verifier un **Single Sender** ou votre domaine
+4. Sur Railway (**fasojob-api** → **Variables**), ajouter :
 
 | Variable | Valeur |
 |----------|--------|
-| `EMAIL_HOST` | `smtp.gmail.com` |
-| `EMAIL_PORT` | `587` |
-| `EMAIL_HOST_USER` | votre@gmail.com |
-| `EMAIL_HOST_PASSWORD` | mot de passe d'application Gmail |
-| `EMAIL_USE_TLS` | `true` |
-| `DEFAULT_FROM_EMAIL` | votre@gmail.com |
+| `SENDGRID_API_KEY` | votre cle API SendGrid (`SG.xxxx...`) |
+| `DEFAULT_FROM_EMAIL` | email verifie dans SendGrid (ex. `noreply@votredomaine.com`) |
 
-Railway injecte automatiquement `RAILWAY_PUBLIC_DOMAIN` (hostname public).
+SendGrid configure automatiquement le SMTP (`smtp.sendgrid.net`, user `apikey`).
+
+En local, sans `SENDGRID_API_KEY`, le code s'affiche dans la console Django et dans l'app (mode dev).
 
 ## 5. Exposer l'API (URL publique)
 

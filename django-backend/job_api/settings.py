@@ -154,7 +154,9 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in _public_hosts]
 
-# Email — console en local, SMTP en prod (Gmail, etc.)
+# Email — console en local, SendGrid SMTP en production
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+
 EMAIL_BACKEND = os.environ.get(
     'EMAIL_BACKEND',
     'django.core.mail.backends.console.EmailBackend',
@@ -163,8 +165,15 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@fasojob.com')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '') or SENDGRID_API_KEY
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() in ('true', '1', 'yes')
+
+# SendGrid SMTP (https://docs.sendgrid.com/for-developers/sending-email/integrating-with-the-smtp-api)
+if SENDGRID_API_KEY or EMAIL_HOST == 'smtp.sendgrid.net':
+    EMAIL_HOST = 'smtp.sendgrid.net'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') or 'apikey'
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = True
 
 if EMAIL_HOST and EMAIL_HOST_USER and EMAIL_HOST_PASSWORD:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

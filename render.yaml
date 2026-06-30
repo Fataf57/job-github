@@ -5,8 +5,8 @@ services:
     runtime: python
     plan: free
     rootDir: django-backend
-    buildCommand: chmod +x build.sh && ./build.sh
-    startCommand: gunicorn job_api.wsgi:application --bind 0.0.0.0:$PORT
+    buildCommand: chmod +x build.sh start.sh && ./build.sh
+    startCommand: ./start.sh
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
